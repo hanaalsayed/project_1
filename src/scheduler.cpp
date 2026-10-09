@@ -1,9 +1,7 @@
 //
 //  scheduler.cpp
-//  Processor Scheduler
-//
-//  Fast and energy-efficient: P3, SJF, small cores first, big-core spill
-//  under backlog, idle cores in C6.
+//  Risha Vankalapati, Hana Alsayed
+//  Attribution: Claude generated road map and initial structure 
 //
 
 #include <deque>
@@ -43,7 +41,6 @@ static void EnsureInit() {
     }
 }
 
-// Returns the speed 
 static double CoreSpeed(CPUId_t c) {
     double s = IsBig(c) ? 1.0 : 0.6;
     return s * (1.0 - 0.2 * (double)RUN_PSTATE);
@@ -164,6 +161,7 @@ void TimerInterrupt(Time_t now) {
     SleepIdleCores(now);
 }
 
+// If waken core has a process, start it. Otherwise, dispatch or put it to sleep.
 void CStateTransitionComplete(CPUId_t core_id) {
     EnsureInit();
     CoreInfo &ci = cores[core_id];
