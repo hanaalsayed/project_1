@@ -10,15 +10,12 @@
 #include <algorithm>
 #include "scheduler.hpp"
 
-// ---------- Tunable policy knobs ----------
-static const Time_t   SLEEP_AFTER_IDLE = 1000;   // us idle before C6 (try 0, 1000, 2000)
-static const CState_t SLEEP_STATE      = C6;     // never C7
-static const PState_t RUN_PSTATE       = P3;     // your measured best
-static const double   WAKE_LATENCY_US  = 7000;   // ASSUMED C6 -> C1 time; set the real value
-static const unsigned SPILL_QLEN       = 2;      // queue length that lets big cores help
-                                                 // (raise for less energy, lower for more speed)
+static const Time_t   SLEEP_AFTER_IDLE = 1000;   
+static const CState_t SLEEP_STATE      = C6;     
+static const PState_t RUN_PSTATE       = P3;     
+static const double   WAKE_LATENCY_US  = 7000;   
+static const unsigned SPILL_QLEN       = 2;      
 
-// ---------- Per-core bookkeeping ----------
 enum CoreStatus { IDLE, BUSY, WAKING, ASLEEP };
 
 struct CoreInfo {
@@ -46,12 +43,13 @@ static void EnsureInit() {
     }
 }
 
-// Assumed speed model, used only for the wake-vs-wait decision.
+// Returns the speed 
 static double CoreSpeed(CPUId_t c) {
     double s = IsBig(c) ? 1.0 : 0.6;
     return s * (1.0 - 0.2 * (double)RUN_PSTATE);
 }
 
+// Returns the time until the next core frees up
 static double TimeUntilCoreFrees() {
     double best = 1e18;
     for (unsigned c = 0; c < NUM_CORES; c++) {
@@ -107,6 +105,7 @@ static void StartOnCore(CPUId_t c, ProcessId_t pid) {
     cores[c].reserved = InvalidProcessId();
 }
 
+// Dispatch as many processes as possible.
 static void Dispatch() {
     while (!readyQ.empty()) {
         size_t idx = 0;
@@ -120,7 +119,7 @@ static void Dispatch() {
         } else {
             cores[c].status = WAKING;
             cores[c].reserved = pid;
-            SetCState(c, C1);                 // completion via upcall
+            SetCState(c, C1);                
         }
     }
 }
