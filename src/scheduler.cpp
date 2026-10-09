@@ -67,13 +67,6 @@ static int FindCore(CoreStatus s, bool wantBig) {
     return -1;
 }
 
-// Index in readyQ of the job with the least remaining work (SJF).
-static size_t ShortestIndex() {
-    size_t best = 0;
-    for (size_t i = 1; i < readyQ.size(); i++)
-        if (GetRemaining(readyQ[i]) < GetRemaining(readyQ[best])) best = i;
-    return best;
-}
 
 // Is this job bigger than the median of the queue?
 static bool IsLongInQueue(ProcessId_t pid) {
@@ -116,7 +109,7 @@ static void StartOnCore(CPUId_t c, ProcessId_t pid) {
 
 static void Dispatch() {
     while (!readyQ.empty()) {
-        size_t idx = ShortestIndex();
+        size_t idx = 0;
         ProcessId_t pid = readyQ[idx];
         bool wake = false;
         int c = PickCore(pid, wake);
